@@ -14,12 +14,17 @@ interface SearchBarProps {
  */
 export default function SearchBar({ value, onChange }: SearchBarProps) {
   return (
-    <input
-      type="text"
-      placeholder="ค้นหา..."
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full border rounded px-3 py-2"
-    />
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-1">
+        ค้นหา
+      </label>
+      <input
+        type="text"
+        placeholder="ค้นหาชื่อ แผนก หรือสถานะ..."
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+      />
+    </div>
   );
 }

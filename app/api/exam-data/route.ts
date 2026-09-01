@@ -13,6 +13,10 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const department = searchParams.get('department') || '';
     const status = searchParams.get('status') || '';
+    const joinDateFrom = searchParams.get('joinDateFrom') || '';
+    const joinDateTo = searchParams.get('joinDateTo') || '';
+    const salaryMin = searchParams.get('salaryMin') || '';
+    const salaryMax = searchParams.get('salaryMax') || '';
     const sortBy = searchParams.get('sortBy') || 'employeeId';
     const sortOrder = searchParams.get('sortOrder') || 'asc';
     const page = parseInt(searchParams.get('page') || '1', 10);
@@ -30,6 +34,26 @@ export async function GET(request: NextRequest) {
 
     if (department) filter.department = department;
     if (status) filter.status = status;
+
+    if (joinDateFrom || joinDateTo) {
+      filter.joinDate = {};
+      if (joinDateFrom) {
+        (filter.joinDate as Record<string, Date>).$gte = new Date(joinDateFrom);
+      }
+      if (joinDateTo) {
+        (filter.joinDate as Record<string, Date>).$lte = new Date(joinDateTo);
+      }
+    }
+
+    if (salaryMin || salaryMax) {
+      filter.salary = {};
+      if (salaryMin) {
+        (filter.salary as Record<string, number>).$gte = Number(salaryMin);
+      }
+      if (salaryMax) {
+        (filter.salary as Record<string, number>).$lte = Number(salaryMax);
+      }
+    }
 
     const sort: Record<string, 1 | -1> = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
