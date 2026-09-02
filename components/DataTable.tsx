@@ -128,17 +128,7 @@ export default function DataTable({
                 {item.salary.toLocaleString()}
               </td>
               <td className="px-4 py-3">{formatDate(item.joinDate)}</td>
-              <td className="px-4 py-3">
-                <span
-                  className={`inline-block px-2 py-1 rounded text-xs ${
-                    item.status === 'Active'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}
-                >
-                  {item.status}
-                </span>
-              </td>
+              <td className="px-4 py-3">{item.status}</td>
               <td className="px-4 py-3">{formatDate(item.lastUpdatedDate)}</td>
               <td className="px-4 py-3 text-center whitespace-nowrap">
                 <button
