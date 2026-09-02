@@ -22,6 +22,7 @@ interface FormData {
 interface DataModalProps {
   item: ExamDataItem | null;
   statusOptions: string[];
+  departmentOptions: string[];
   onClose: () => void;
   onSaved: () => void;
 }
@@ -36,6 +37,7 @@ interface DataModalProps {
 export default function DataModal({
   item,
   statusOptions,
+  departmentOptions,
   onClose,
   onSaved,
 }: DataModalProps) {
@@ -51,6 +53,8 @@ export default function DataModal({
   const [saving, setSaving] = useState(false);
   const [isAddingStatus, setIsAddingStatus] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
+  const [isAddingDepartment, setIsAddingDepartment] = useState(false);
+  const [isDepartmentOpen, setIsDepartmentOpen] = useState(false);
 
   /**
    * โหลดข้อมูลเดิมเข้าฟอร์มเมื่อมีการแก้ไข
@@ -74,6 +78,8 @@ export default function DataModal({
     }
     setIsAddingStatus(false);
     setIsStatusOpen(false);
+    setIsAddingDepartment(false);
+    setIsDepartmentOpen(false);
   }, [item]);
 
   /**
@@ -95,6 +101,17 @@ export default function DataModal({
     setIsStatusOpen(false);
   };
 
+  const handleDepartmentChange = (value: string) => {
+    if (value === '__new__') {
+      setForm({ ...form, department: '' });
+      setIsAddingDepartment(true);
+    } else {
+      setForm({ ...form, department: value });
+      setIsAddingDepartment(false);
+    }
+    setIsDepartmentOpen(false);
+  };
+
   /**
    * บันทึกข้อมูลไปยัง API
    * @param e Event ของการ submit
@@ -103,6 +120,10 @@ export default function DataModal({
     e.preventDefault();
     if (!form.status.trim()) {
       alert('กรุณาเลือกหรือเพิ่มสถานะ');
+      return;
+    }
+    if (!form.department.trim()) {
+      alert('กรุณาเลือกหรือเพิ่มแผนก');
       return;
     }
     setSaving(true);
@@ -135,6 +156,9 @@ export default function DataModal({
   const availableStatuses = Array.from(
     new Set([...statusOptions, ...(item?.status ? [item.status] : [])])
   );
+  const availableDepartments = Array.from(
+    new Set([...departmentOptions, ...(item?.department ? [item.department] : [])])
+  );
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -166,13 +190,51 @@ export default function DataModal({
           </div>
           <div>
             <label className="block text-sm">แผนก</label>
-            <input
-              required
-              name="department"
-              value={form.department}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
+            <div className="relative w-full">
+              <button
+                type="button"
+                onClick={() => setIsDepartmentOpen((open) => !open)}
+                className="w-full h-[42px] border rounded px-3 py-2 bg-white text-left flex items-center justify-between gap-2"
+              >
+                <span className={`truncate ${form.department ? '' : 'text-slate-400'}`}>
+                  {isAddingDepartment ? '+ เพิ่มแผนกใหม่' : form.department || 'เลือกแผนก'}
+                </span>
+                <span className="text-slate-500 shrink-0">⌄</span>
+              </button>
+              {isDepartmentOpen && (
+                <div className="absolute z-20 top-full inset-x-0 mt-1 box-border max-h-48 overflow-y-auto rounded border bg-white shadow-lg">
+                  {availableDepartments.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => handleDepartmentChange(option)}
+                      className="block w-full px-3 py-2 text-left truncate hover:bg-slate-100"
+                      title={option}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => handleDepartmentChange('__new__')}
+                    className="block w-full border-t px-3 py-2 text-left font-medium text-blue-600 hover:bg-blue-50"
+                  >
+                    + เพิ่มแผนกใหม่
+                  </button>
+                </div>
+              )}
+            </div>
+            {isAddingDepartment && (
+              <input
+                required
+                autoFocus
+                name="department"
+                value={form.department}
+                onChange={handleChange}
+                placeholder="กรอกชื่อแผนกใหม่"
+                className="w-full h-[42px] border rounded px-3 py-2 mt-2"
+              />
+            )}
           </div>
           <div>
             <label className="block text-sm">เงินเดือน</label>
