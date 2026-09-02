@@ -50,7 +50,7 @@ npm run start
 ## โครงสร้างโปรเจค
 
 ```
-edms-app/
+EDMS/
   app/
     api/
       import/route.ts         # API Import Excel
@@ -66,8 +66,3 @@ edms-app/
     types.ts                  # TypeScript Types
   .env                        # ค่าตัวแปรสภาพแวดล้อม
 ```
-
-## หมายเหตุ
-
-- `.env` มีค่า MONGODB_URI ควรเก็บไฟล์นี้ให้ปลอดภัยและไม่ commit
-- การ Import Excel จะล้างข้อมูลเก่าแล้วใส่ข้อมูลใหม่ทุกครั้ง
