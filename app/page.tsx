@@ -18,6 +18,7 @@ import ExportButton from '@/components/ExportButton';
  */
 export default function HomePage() {
   const [items, setItems] = useState<ExamDataItem[]>([]);
+  const [statusOptions, setStatusOptions] = useState<string[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -117,8 +118,13 @@ export default function HomePage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/exam-data?${queryString}`);
-      const json = (await res.json()) as { data: ExamDataItem[]; total: number };
+      const json = (await res.json()) as {
+        data: ExamDataItem[];
+        total: number;
+        statuses: string[];
+      };
       setItems(json.data || []);
+      setStatusOptions(json.statuses || []);
       setTotal(json.total || 0);
     } finally {
       setLoading(false);
@@ -225,7 +231,7 @@ export default function HomePage() {
             <FilterPanel
               label="สถานะ"
               value={status}
-              options={['Active', 'In Active']}
+              options={statusOptions}
               onChange={setStatus}
             />
             <SalaryRangeFilter
@@ -291,6 +297,7 @@ export default function HomePage() {
       {isModalOpen && (
         <DataModal
           item={selected}
+          statusOptions={statusOptions}
           onClose={() => setIsModalOpen(false)}
           onSaved={handleSaved}
         />

@@ -62,15 +62,16 @@ export async function GET(request: NextRequest) {
     const total = await ExamData.countDocuments(
       filter as unknown as Parameters<typeof ExamData.countDocuments>[0]
     );
-    const data = await ExamData.find(
-      filter as unknown as Parameters<typeof ExamData.find>[0]
-    )
-      .sort(sort)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+    const [data, statuses] = await Promise.all([
+      ExamData.find(filter as unknown as Parameters<typeof ExamData.find>[0])
+        .sort(sort)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      ExamData.distinct('status'),
+    ]);
 
-    return NextResponse.json({ data, total, page, limit });
+    return NextResponse.json({ data, total, page, limit, statuses });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'เกิดข้อผิดพลาด';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     await dbConnect();
-    const doc = new ExamData(body);
+    const doc = new ExamData({ ...body, lastUpdatedDate: new Date() });
     await doc.save();
     return NextResponse.json(doc.toObject(), { status: 201 });
   } catch (error: unknown) {
