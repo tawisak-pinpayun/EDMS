@@ -42,7 +42,10 @@ export default function ExcelUploader({ onImported }: ExcelUploaderProps) {
         method: 'POST',
         body: formData,
       });
-      if (!res.ok) throw new Error('Import ล้มเหลว');
+      if (!res.ok) {
+        const result = (await res.json()) as { error?: string };
+        throw new Error(result.error || 'Import ล้มเหลว');
+      }
       setFile(null);
       if (inputRef.current) inputRef.current.value = '';
       onImported();
