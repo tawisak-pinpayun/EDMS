@@ -29,8 +29,21 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
     await Promise.all(mapped.map((data) => new ExamData(data).validate()));
-    await ExamData.deleteMany({});
-    await ExamData.insertMany(mapped);
+
+    const bulkOps = mapped.map((data) => ({
+      updateOne: {
+        filter: { employeeId: data.employeeId },
+        update: {
+          $set: {
+            ...data,
+            lastUpdatedDate: new Date(),
+          },
+        },
+        upsert: true,
+      },
+    }));
+
+    await ExamData.bulkWrite(bulkOps);
 
     return NextResponse.json({ message: 'นำเข้าสำเร็จ', count: mapped.length });
   } catch (error: unknown) {

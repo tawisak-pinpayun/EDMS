@@ -19,6 +19,7 @@ import ExportButton from '@/components/ExportButton';
 export default function HomePage() {
   const [items, setItems] = useState<ExamDataItem[]>([]);
   const [statusOptions, setStatusOptions] = useState<string[]>([]);
+  const [departmentOptions, setDepartmentOptions] = useState<string[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -122,9 +123,11 @@ export default function HomePage() {
         data: ExamDataItem[];
         total: number;
         statuses: string[];
+        departments: string[];
       };
       setItems(json.data || []);
       setStatusOptions(json.statuses || []);
+      setDepartmentOptions(json.departments || []);
       setTotal(json.total || 0);
     } finally {
       setLoading(false);
@@ -225,7 +228,7 @@ export default function HomePage() {
             <FilterPanel
               label="แผนก"
               value={department}
-              options={['Engineering', 'Marketing', 'Sales', 'HR']}
+              options={departmentOptions}
               onChange={setDepartment}
             />
             <FilterPanel
@@ -298,6 +301,7 @@ export default function HomePage() {
         <DataModal
           item={selected}
           statusOptions={statusOptions}
+          departmentOptions={departmentOptions}
           onClose={() => setIsModalOpen(false)}
           onSaved={handleSaved}
         />
