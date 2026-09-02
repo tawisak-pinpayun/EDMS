@@ -23,13 +23,19 @@ export async function POST(request: NextRequest) {
     const rows = parseExcelBuffer(buffer);
     const mapped = rows.map(mapExcelRow);
 
+    if (mapped.length === 0) {
+      return NextResponse.json({ error: 'ไม่พบข้อมูลในไฟล์ Excel' }, { status: 400 });
+    }
+
     await dbConnect();
+    await Promise.all(mapped.map((data) => new ExamData(data).validate()));
     await ExamData.deleteMany({});
     await ExamData.insertMany(mapped);
 
     return NextResponse.json({ message: 'นำเข้าสำเร็จ', count: mapped.length });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'เกิดข้อผิดพลาด';
-    return NextResponse.json({ error: message }, { status: 500 });
+    const status = error instanceof Error && error.name === 'ValidationError' ? 400 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }
