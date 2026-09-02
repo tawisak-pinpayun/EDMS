@@ -62,16 +62,17 @@ export async function GET(request: NextRequest) {
     const total = await ExamData.countDocuments(
       filter as unknown as Parameters<typeof ExamData.countDocuments>[0]
     );
-    const [data, statuses] = await Promise.all([
+    const [data, statuses, departments] = await Promise.all([
       ExamData.find(filter as unknown as Parameters<typeof ExamData.find>[0])
         .sort(sort)
         .skip((page - 1) * limit)
         .limit(limit)
         .lean(),
       ExamData.distinct('status'),
+      ExamData.distinct('department'),
     ]);
 
-    return NextResponse.json({ data, total, page, limit, statuses });
+    return NextResponse.json({ data, total, page, limit, statuses, departments });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'เกิดข้อผิดพลาด';
     return NextResponse.json({ error: message }, { status: 500 });
