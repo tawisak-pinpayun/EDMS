@@ -28,16 +28,14 @@ export default function ExportButton({ query }: ExportButtonProps) {
       const res = await fetch(`/api/exam-data?${query}`);
       const json = (await res.json()) as { data: ExamDataItem[] };
       const rows = (json.data || []).map((item) => ({
-        รหัสพนักงาน: item.employeeId,
-        ชื่อ: item.name,
-        แผนก: item.department,
-        เงินเดือน: item.salary,
-        วันที่เข้าร่วม: item.joinDate
-          ? new Date(item.joinDate).toLocaleDateString('th-TH')
-          : '',
-        สถานะ: item.status,
-        อัปเดตล่าสุด: item.lastUpdatedDate
-          ? new Date(item.lastUpdatedDate).toLocaleDateString('th-TH')
+        ID: item.employeeId,
+        Name: item.name,
+        Department: item.department,
+        Salary: item.salary,
+        'Join Date': item.joinDate ? new Date(item.joinDate).toISOString() : '',
+        Status: item.status,
+        'Last Updated Date': item.lastUpdatedDate
+          ? new Date(item.lastUpdatedDate).toISOString()
           : '',
       }));
 

@@ -21,6 +21,7 @@ interface FormData {
  */
 interface DataModalProps {
   item: ExamDataItem | null;
+  statusOptions: string[];
   onClose: () => void;
   onSaved: () => void;
 }
@@ -32,7 +33,12 @@ interface DataModalProps {
  * @param onSaved ฟังก์ชั่นเมื่อบันทึกสำเร็จ
  * @returns JSX Element
  */
-export default function DataModal({ item, onClose, onSaved }: DataModalProps) {
+export default function DataModal({
+  item,
+  statusOptions,
+  onClose,
+  onSaved,
+}: DataModalProps) {
   const [form, setForm] = useState<FormData>({
     employeeId: '',
     name: '',
@@ -43,11 +49,14 @@ export default function DataModal({ item, onClose, onSaved }: DataModalProps) {
     lastUpdatedDate: '',
   });
   const [saving, setSaving] = useState(false);
+  const [isAddingStatus, setIsAddingStatus] = useState(false);
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
 
   /**
    * โหลดข้อมูลเดิมเข้าฟอร์มเมื่อมีการแก้ไข
    */
   useEffect(() => {
+    const now = new Date().toLocaleString('th-TH');
     if (item) {
       setForm({
         employeeId: String(item.employeeId),
@@ -58,11 +67,13 @@ export default function DataModal({ item, onClose, onSaved }: DataModalProps) {
           ? new Date(item.joinDate).toISOString().split('T')[0]
           : '',
         status: item.status,
-        lastUpdatedDate: item.lastUpdatedDate
-          ? new Date(item.lastUpdatedDate).toISOString().split('T')[0]
-          : '',
+        lastUpdatedDate: now,
       });
+    } else {
+      setForm((current) => ({ ...current, lastUpdatedDate: now }));
     }
+    setIsAddingStatus(false);
+    setIsStatusOpen(false);
   }, [item]);
 
   /**
@@ -73,12 +84,27 @@ export default function DataModal({ item, onClose, onSaved }: DataModalProps) {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleStatusChange = (value: string) => {
+    if (value === '__new__') {
+      setForm({ ...form, status: '' });
+      setIsAddingStatus(true);
+    } else {
+      setForm({ ...form, status: value });
+      setIsAddingStatus(false);
+    }
+    setIsStatusOpen(false);
+  };
+
   /**
    * บันทึกข้อมูลไปยัง API
    * @param e Event ของการ submit
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.status.trim()) {
+      alert('กรุณาเลือกหรือเพิ่มสถานะ');
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
@@ -88,7 +114,7 @@ export default function DataModal({ item, onClose, onSaved }: DataModalProps) {
         salary: Number(form.salary),
         joinDate: form.joinDate ? new Date(form.joinDate) : null,
         status: form.status.trim(),
-        lastUpdatedDate: form.lastUpdatedDate ? new Date(form.lastUpdatedDate) : null,
+        lastUpdatedDate: new Date(),
       };
       const url = item?._id ? `/api/exam-data/${item._id}` : '/api/exam-data';
       const method = item?._id ? 'PATCH' : 'POST';
@@ -105,6 +131,10 @@ export default function DataModal({ item, onClose, onSaved }: DataModalProps) {
       setSaving(false);
     }
   };
+
+  const availableStatuses = Array.from(
+    new Set([...statusOptions, ...(item?.status ? [item.status] : [])])
+  );
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -167,22 +197,59 @@ export default function DataModal({ item, onClose, onSaved }: DataModalProps) {
           </div>
           <div>
             <label className="block text-sm">สถานะ</label>
-            <input
-              required
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
+            <div className="relative w-full">
+              <button
+                type="button"
+                onClick={() => setIsStatusOpen((open) => !open)}
+                className="w-full h-[42px] border rounded px-3 py-2 bg-white text-left flex items-center justify-between gap-2"
+              >
+                <span className={`truncate ${form.status ? '' : 'text-slate-400'}`}>
+                  {isAddingStatus ? '+ เพิ่มสถานะใหม่' : form.status || 'เลือกสถานะ'}
+                </span>
+                <span className="text-slate-500 shrink-0">⌄</span>
+              </button>
+              {isStatusOpen && (
+                <div className="absolute z-20 top-full inset-x-0 mt-1 box-border max-h-48 overflow-y-auto rounded border bg-white shadow-lg">
+                  {availableStatuses.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => handleStatusChange(option)}
+                      className="block w-full px-3 py-2 text-left truncate hover:bg-slate-100"
+                      title={option}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => handleStatusChange('__new__')}
+                    className="block w-full border-t px-3 py-2 text-left font-medium text-blue-600 hover:bg-blue-50"
+                  >
+                    + เพิ่มสถานะใหม่
+                  </button>
+                </div>
+              )}
+            </div>
+            {isAddingStatus && (
+              <input
+                required
+                autoFocus
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+                placeholder="กรอกชื่อสถานะใหม่"
+                className="w-full h-[42px] border rounded px-3 py-2 mt-2"
+              />
+            )}
           </div>
           <div>
             <label className="block text-sm">อัปเดตล่าสุด</label>
             <input
-              type="date"
-              name="lastUpdatedDate"
+              readOnly
+              type="text"
               value={form.lastUpdatedDate}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
+              className="w-full h-[42px] border rounded px-3 py-2 bg-slate-100 text-slate-600"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">

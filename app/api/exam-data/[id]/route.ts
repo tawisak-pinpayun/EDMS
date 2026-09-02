@@ -38,9 +38,11 @@ export async function PATCH(
   try {
     const body = await request.json();
     await dbConnect();
-    const updated = await ExamData.findByIdAndUpdate(params.id, body, {
-      new: true,
-    }).lean();
+    const updated = await ExamData.findByIdAndUpdate(
+      params.id,
+      { ...body, lastUpdatedDate: new Date() },
+      { new: true }
+    ).lean();
     if (!updated) {
       return NextResponse.json({ error: 'ไม่พบข้อมูล' }, { status: 404 });
     }
